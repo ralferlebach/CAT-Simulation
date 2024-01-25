@@ -1,0 +1,60 @@
+<question type="multichoice">
+    <name>
+      <text>Testfrage SIM{{ID}}</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p dir="ltr" style="text-align: left;"><b>Frage-ID: SIM{{ID}}</b></p><p>Schwierigkeit: {{a}}</p><p>Trennschärfe: {{b}}</p><p><b>Skala: Simulation/Sim{{scale}}</b></p>]]></text>
+    </questiontext>    
+<generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber>SIM{{ID}}</idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>none</answernumbering>
+    <showstandardinstruction>0</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Die Antwort ist richtig.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Die Antwort ist teilweise richtig.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Die Antwort ist falsch.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+
+<answer fraction="100" format="html">
+    <text><![CDATA[<p dir="ltr" style="text-align: left;">richtige Antwort</p>]]></text>
+    <feedback format="html">
+        <text></text>
+    </feedback>
+</answer>
+<answer fraction="0" format="html">
+    <text><![CDATA[<p dir="ltr" style="text-align: left;">falsche Antwort 1</p>]]></text>
+    <feedback format="html">
+        <text></text>
+    </feedback>
+</answer>
+<answer fraction="0" format="html">
+    <text><![CDATA[<p dir="ltr" style="text-align: left;">falsche Antwort 2</p>]]></text>
+    <feedback format="html">
+        <text></text>
+    </feedback>
+</answer><answer fraction="0" format="html">
+    <text><![CDATA[<p dir="ltr" style="text-align: left;">falsche Antwort 3</p>]]></text>
+    <feedback format="html">
+        <text></text>
+    </feedback>
+</answer>
+    
+<tags>
+ <tag><text>Simulation</text>
+</tag>
+<tag><text>SC</text>
+</tag>
+    </tags>
+  </question>

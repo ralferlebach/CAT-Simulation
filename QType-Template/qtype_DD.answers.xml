@@ -1,0 +1,4 @@
+<selectoption>
+    <text>{{Antwort}}</text>
+    <group>{{Antwortgruppe}}</group>
+</selectoption>

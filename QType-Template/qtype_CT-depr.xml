@@ -1,0 +1,32 @@
+ <question type="cloze">
+    <name>
+      <text>{{Titel}} |{{ID1}}{{ID2}}{{ID3}}{{ID4}}{{ID5}}|</text>
+    </name>
+    <questiontext format="html">
+      <![CDATA[<p dir="ltr" style="text-align: left;">{{Frageeinleitung}}</p>
+      <p dir="ltr" style="text-align: left;"><em>{{Instruktion/Prompt}}</em></p>
+      <div class="editor-indent" style="margin-left: 30px;"><p dir="ltr" style="text-align: left;">{{Text}}</p></div>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+     <idnumber>{{ID1}}{{ID2}}{{ID3}}{{ID4}}{{ID5}}</idnumber>
+     
+    <tags>
+        <tag><text>{{ID1}}</text>
+        </tag>
+        <tag><text>{{ID1}}{{ID2}}</text>
+        </tag>
+        <tag><text>{{ID4}}</text>
+        </tag>
+        <tag><text>{{Datum}}</text>
+        </tag>
+        <tag><text>{{Charge}}</text>
+        </tag>
+        <tag><text>CT</text>
+        </tag>
+    </tags> 
+
+  </question>

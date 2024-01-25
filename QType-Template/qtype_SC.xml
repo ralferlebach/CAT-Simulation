@@ -1,0 +1,48 @@
+<question type="multichoice">
+    <name>
+      <text>{{Titel}} |{{ID1}}{{ID2}}{{ID3}}{{ID4}}{{ID5}}|</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p dir="ltr" style="text-align: left;">{{Frageeinleitung}}</p>
+      <div class="editor-indent" style="margin-left: 30px;"><p dir="ltr" style="text-align: left;">{{Text}}</p></div>
+      <p dir="ltr" style="text-align: left;"><em>{{Instruktion/Prompt}}</em></p>]]></text>
+    </questiontext>    
+<generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber>{{ID1}}{{ID2}}{{ID3}}{{ID4}}{{ID5}}</idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>none</answernumbering>
+    <showstandardinstruction>0</showstandardinstruction>
+    <correctfeedback format="html">
+      <text>Die Antwort ist richtig.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Die Antwort ist teilweise richtig.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Die Antwort ist falsch.</text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+
+    {{answers}}
+    
+<tags>
+ <tag><text>{{ID1}}</text>
+</tag>
+<tag><text>{{ID1}}{{ID2}}</text>
+</tag>
+<tag><text>{{ID4}}</text>
+</tag>
+<tag><text>{{Datum}}</text>
+</tag>
+<tag><text>{{Charge}}</text>
+</tag>
+<tag><text>SC</text>
+</tag>
+    </tags>
+  </question>

@@ -1,0 +1,47 @@
+<question type="wordselect">
+    <name>
+      <text>{{Titel}} |{{ID1}}{{ID2}}{{ID3}}{{ID4}}{{ID5}}|</text>
+    </name>
+    <introduction><![CDATA[<p dir="ltr" style="text-align: left;">{{Frageeinleitung}}</p>
+    <p>&nbsp;</p>
+    <p dir="ltr" style="text-align: left;"><em>{{Instruktion/Prompt}}</i></em></p>]]>
+    </introduction>
+    <questiontext format="html">
+      <text><![CDATA[<div class="editor-indent" style="margin-left: 30px;"><p dir="ltr" style="text-align: left;">{{Text}}</p></div>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>1.0000000</penalty>
+    <hidden>0</hidden>
+    <idnumber>{{ID1}}{{ID2}}{{ID3}}{{ID4}}{{ID5}}</idnumber>
+
+    <delimitchars>[]</delimitchars>
+    <wordpenalty>1.0</wordpenalty>
+    
+    <correctfeedback format="html">
+      <text>Die Antwort ist richtig.</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Die Antwort ist teilweise richtig.</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Die Antwort ist falsch.</text>
+    </incorrectfeedback>
+    
+    <tags>
+        <tag><text>{{ID1}}</text>
+        </tag>
+        <tag><text>{{ID1}}{{ID2}}</text>
+        </tag>
+        <tag><text>{{ID4}}</text>
+        </tag>
+        <tag><text>{{Datum}}</text>
+        </tag>
+        <tag><text>{{Charge}}</text>
+        </tag>
+        <tag><text>WA</text>
+        </tag>
+    </tags> 
+</question>
