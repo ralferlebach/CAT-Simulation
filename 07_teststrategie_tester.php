@@ -13,10 +13,10 @@ require_once ('Daten/responses ' . $irt_model . ' V1.php');
 #print_r ($responses);
 #die;
 
-$test_strategie = 'radCAT'; // radikaler CAT
+# $test_strategie = 'radCAT'; // radikaler CAT
 # $test_strategie = 'classTest'; // klassischer Test
 # $test_strategie = 'defCAT'; // Adaptive Test for Deficency
-# $test_strategie = 'strenCAT'; // Adaptive Test for Strength
+ $test_strategie = 'strenCAT'; // Adaptive Test for Strength
 
 $pp_start = 0; #0.02;
 $pp_start = 0.02;
