@@ -1,14 +1,17 @@
 <?php
+
+$vers = 2; 
+
 ini_set("display_errors", "1");
 error_reporting(E_ALL);
 set_time_limit(0);
 
 
 require_once ("00_functions.php");
-require_once ("Daten/items.php");
-require_once ("Daten/persons.php");
+require_once ("Daten/items V".$vers.".php");
+require_once ("Daten/persons V".$vers.".php");
 
-$irt_model = '3PL';
+$irt_model = '2PL';
 $irt_formula = ['1PL' => (fn($ip, $pp) => 1 / (1 + exp($ip['a'] - $pp))),
 '2PL' => (fn($ip, $pp) => 1 / (1 + exp($ip['b'] * ($ip['a'] - $pp)))),
 '3PL' => (fn($ip, $pp) => $ip['c'] + (1 - $ip['c'] ) / (1 +  exp($ip['b'] * ($ip['a'] - $pp))))];

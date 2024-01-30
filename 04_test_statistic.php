@@ -1,13 +1,15 @@
 <?php
 
-$version = "";
+$vers = 2;
 
-require_once ("Daten/items.php");
+
 require_once ('00_functions_2pl.php');
 
 $irt_model = '2PL';
+$TP_items = 3; 
 
-require_once ('Daten/responses ' . $irt_model . '.php');
+require_once ("Daten/items V".$vers.".php");
+require_once ("Daten/responses ".$irt_model." V".$vers.".php");
 
 // Lade alle Skalen und Items, Bereite Personen-Fähigkeitsmatrix vor
 $sp = [];
@@ -16,7 +18,7 @@ $pp = [];
 $se = [];
 $N_items = [];
 
-$scale_root = "Sim";
+$scale_root = "SimV".$vers;
 
 foreach ($items as $scale_id => $value) {
     $scale_id = $scale_root."/".$scale_id;
@@ -55,7 +57,7 @@ foreach ($sp as $scale_id => $value) {
     $output_line = $scale_id;
     for ($theta=-5; $theta <= 5; $theta += 0.1) {
         # $output_line .= ";" . round(ti_2pl($item_temp, $theta), 2);
-        $output_line .= ";" . round(tp_2pl($item_temp, $theta, 5), 2);
+        $output_line .= ";" . round(tp_2pl($item_temp, $theta, $TP_items), 2);
     }
     
     echo "<br>". $output_line;

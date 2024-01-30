@@ -1,12 +1,15 @@
 <?php
 
+$vers = 2;
+$scale_root ="SimV".$vers;
+
 ini_set("display_errors", "1");
 error_reporting(E_ALL);
 set_time_limit(0);
 
 
 require_once ("00_functions.php");
-require_once ("Daten/items.php");
+require_once ("Daten/items V".$vers.".php");
 // Einlesen der Datei mit den Daten für die Fragen
 
 
@@ -14,7 +17,7 @@ $question_data = [];
 
 foreach ($items as $scale_id => $scale) {
     foreach ($scale as $item_id => $item) {
-        $question_data[] = ['ID' => $item_id, 'a' => $item['a'], 'b' => $item['b'], 'scale' => $scale_id];
+        $question_data[] = ['ID' => "V".$vers."-".$item_id, 'a' => $item['a'], 'b' => $item['b'], 'scale' => $scale_id];
     }
 }
 
@@ -53,15 +56,15 @@ foreach ($question_data as $n => $question) {
 
 $question_export = str_replace(["{{output}}"], [$question_output], $question_export);
 
-file_put_contents("question_export.xml", $question_export);
+file_put_contents("Ergebnisse/export_questionbank V".$vers.".xml", $question_export);
 
 // Generiere Scale-Export
 
 $scale_export = "componentid,componentname,contextid,status,qtype,model,difficulty,discrimination,guessing,label,catscalename,parentscalenames";
 
 foreach ($question_data as $n => $question) {
-    $scale_export .="\n0,question,1,4,Multiple-Choice,raschbirnbaumb,".$question['a'].",".$question['b'].",0.0000,SIM".$question['ID'].",Sim".substr($question['scale'], 2, 3).",Simulation|Sim".substr($question['scale'], 0,1);
+    $scale_export .="\n0,question,1,4,Multiple-Choice,raschbirnbaumb,".round($question['a'],2).",".round($question['b'],2).",0.00,SIM".$question['ID'].",Sim".substr($question['scale'], 2, 3).",".$scale_root."|Sim".substr($question['scale'], 0,1);
 }
-file_put_contents("scale_export.csv", $scale_export);
+file_put_contents("Ergebnisse/export_CATscales V".$vers.".csv", $scale_export);
 
 echo "Fertig.";

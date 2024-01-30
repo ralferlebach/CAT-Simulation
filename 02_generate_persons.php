@@ -1,16 +1,17 @@
 <?php
+$vers = 2;
 
 require_once ("00_functions.php");
 
-require_once ("Daten/items.php");
+require_once ("Daten/items V".$vers.".php");
 
 $person_anz = 1000;
 
 $pp = [];
 
 for ($n = 0; $n < $person_anz; $n++) {
-    $pp_MN = round(nrand(0, 3), 2);
-    $pp_SD = round(lrand(0.1, 0.5), 2);
+    $pp_MN = round(nrand(0, 1), 2);
+    $pp_SD = round(lrand(0.1, 1.5), 2);
     $pp[sprintf("P%'.06d", $n)] = ['Gesamt' => $pp_MN];
     foreach ($items as $key => $value) {
         $pp[sprintf("P%'.06d", $n)][$key] = round(nrand($pp_MN, $pp_SD), 2);

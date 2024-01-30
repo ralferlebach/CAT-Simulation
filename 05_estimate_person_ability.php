@@ -14,7 +14,7 @@ require_once ('Daten/responses ' . $irt_model . ' V'.$vers.'.php');
 
 $pp_start = 0;
 
-$scale_root = "Sim";
+$scale_root = "SimV".$vers;
 
 // Lade alle Skalen und Items
 $sp = [];
@@ -84,32 +84,37 @@ foreach ($responses as $person_id => $response_pattern) {
     $pp_calc = [];
     $se_calc = [];
     $N_calc = [];
+    $frac_calc = [];
     
     foreach ($sp as $scale_id => $scale_value) { # Berechne PP für jede Skala
         
         $item_temp = array_filter($ip, function($v, $k) { global $scale_id; return (substr($v['Scale'], 0, strlen($scale_id)) == $scale_id); }, ARRAY_FILTER_USE_BOTH);
         
         $N_calc[$scale_id] = count($item_temp);
-        
+        $frac = 0;
         foreach( $item_temp as $item_id => $item_value) {
             $item_temp[$item_id ]["k"] = $response_pattern[$item_id];
+            $frac += $response_pattern[$item_id];
         }
         
         $pp_calc[$scale_id] = pp_2pl_est($item_temp);
         $se_calc[$scale_id] = se_2pl($item_temp, $pp_calc[$scale_id]);
+        $frac_calc[$scale_id] = ($N_calc[$scale_id] > 0)?($frac / $N_calc[$scale_id]):(0);
         
-        $pp_output .= ";".round($pp_calc[$scale_id], 2)." (".round($se_calc[$scale_id], 2).", ".$N_calc[$scale_id].")";
+        $pp_output .= ";".round($pp_calc[$scale_id], 2)." (".round($se_calc[$scale_id], 2).", ".$N_calc[$scale_id]." x ".round($frac_calc[$scale_id],2).")";
     }   
     // die();
     $pp_php[$person_id] = $pp_calc;
     $se_php[$person_id] = $se_calc;
+    $N_php[$person_id] = $N_calc;
+    $frac_php[$person_id] = $frac_calc;
     
 }
 $file_name = "Daten/persons ".$irt_model." V".$vers;
 
 file_put_contents($file_name.".csv", $pp_output);
 
-$pp_php = "<?php\n\n\$items = [\n".print_array($pp_php,1)."\n];\n?>";
+$pp_php = "<?php\n\n\$person = [\n".print_array($pp_php,1)."\n\n\$standarderror = [\n".print_array($se_php,1)."\n\n\$N_items = [\n".print_array($N_php,1)."\n\n\$frac = [\n".print_array($frac_php,1)."\n];\n?>";
 
 file_put_contents($file_name.".php", $pp_php);
 
