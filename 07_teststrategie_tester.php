@@ -17,6 +17,8 @@ require_once ('Daten/responses ' . $irt_model . ' V1.php');
 # $test_strategie = 'classTest'; // klassischer Test
 # $test_strategie = 'defCAT'; // Adaptive Test for Deficency
  $test_strategie = 'strenCAT'; // Adaptive Test for Strength
+# $test_strategie = 'relScales'; // Adaptive Test for relevant Scales
+# $test_strategie = 'allScales'; // Adaptive Test for all Scales
 
 $pp_start = 0; #0.02;
 $pp_start = 0.02;
@@ -53,11 +55,11 @@ foreach ($items as $scale_id => $value) {
     do {
         $offset = strpos($scale_id, "/", $offset+1);
         $scale_temp = (($offset)?(substr($scale_id, 0, $offset)):($scale_id));
-        
-        if ($test_strategie === 'radCAT') {
-            $sp[$scale_temp] = $scale_temp; 
+
+        if (($test_strategie === 'radCAT') || ($test_strategie === 'allCAT')) {
+            $sp[$scale_temp] = $scale_temp;
         } else {
-            $sp[$scale_temp] = FALSE; 
+            $sp[$scale_temp] = FALSE;
         }
         // Wenn sp[$id] == $id, dann wird Skala verwendet, wenn sp[$id] == FALSE dann (vorerst) nicht
     } while ($offset);
@@ -72,7 +74,7 @@ $sp[$scale_root] = $scale_root;
 foreach ($items as $scale_id => $scale) {
     foreach ($scale as $item_id => $item) {
         $ip[$item_id] = ['ID' => $item_id, 'Scale' => $scale_root."/".$scale_id, 'ip' => ['a' => $item['a'], 'b' => $item['b'], 'c' => $item['c']]];
-        
+
         switch ($irt_model) {
             case '1PL':
                 $ip[$item_id]['ip']['b'] = 1;
@@ -94,7 +96,7 @@ foreach ($sp as $scale_id => $scale_value) {
 
     $out_step_header .= ";".$scale_id;
     $out_step_template .= ";{".$scale_id."}";
-    
+
     $pp[$scale_id] = FALSE;
     $pp_prev[$scale_id] = FALSE;
     $se[$scale_id] = 0;
@@ -102,7 +104,7 @@ foreach ($sp as $scale_id => $scale_value) {
     $N_normmax[$scale_id] = min($N_max, count(array_filter($ip, function($v, $k) { global $scale_id; return (substr($v['Scale'], 0, strlen($scale_id)) == $scale_id); }, ARRAY_FILTER_USE_BOTH)));
 
     $f[$scale_id] = 0.5;
-} 
+}
 $pp[$scale_root] = $pp_start;
 $se[$scale_root] = $se_start;
 
@@ -119,14 +121,14 @@ $output = "ID;PP global;SE global;N global;f global;Scala Diagnose;PP Diagnose;S
 $itemselection = [];
 foreach ($responses as $person_id => $response_pattern) {
     $out_step_data .= "\n\n".$person_id;
-    
+
     set_time_limit(180);
 
     $item_calc = $ip;
     $item_played = [];
-    
+
     echo "<br><br><b>Person: ".$person_id."</b>";
-    
+
     $sp_calc = $sp;
     $pp_calc = $pp;
     $se_calc = $se;
@@ -134,24 +136,24 @@ foreach ($responses as $person_id => $response_pattern) {
     $f_calc = $f;
 
     for ($n=0; (($n < $N_total) && (count($N_calc) > 0)) || (( $test_strategie == 'classTest') && ($n < count($ip))); $n++) {
-        
+
         // Sperre alle Skalen, die nicht (mehr) genügend Test-Information haben
         foreach ($pp_calc as $scale_temp => $pp_value) {
             if (!array_key_exists($scale_temp, $sp_calc)) { continue; }
             if ($test_strategie == 'radCAT')  { break; }
             if (!$pp_value) { continue; }
             if ($test_strategie == 'classTest') { break; }
-            
+
             $item_temp = array_filter($item_calc, function($v, $k) { global $scale_temp; return substr($v['Scale'], 0, strlen($scale_temp)) == $scale_temp; }, ARRAY_FILTER_USE_BOTH);
-            
+
             $tp_temp = tp_2pl($item_temp, $pp_value, max(0 ,$N_max - $N_calc[$scale_temp]));
-            
+
             $item_temp = array_filter($item_played, function($v, $k) { global $scale_temp; return (substr($v['Scale'], 0, strlen($scale_temp)) == $scale_temp); }, ARRAY_FILTER_USE_BOTH);
-            
+
             $ti_temp = ti_2pl($item_temp, $pp_value);
-            
+
             if ($tp_temp + $ti_temp < (1/$se_max ** 2)) {
-                if ($N_calc[$scale_temp] >= $N_min) { 
+                if ($N_calc[$scale_temp] >= $N_min) {
                     if ($sp_calc[$scale_temp]) {
                         $out_step_data .= "\n".$person_id.";deact;".$scale_temp.";TP+TI:;".($tp_temp + $ti_temp)."; <".(1/$se_max ** 2);
                     }
@@ -164,20 +166,20 @@ foreach ($responses as $person_id => $response_pattern) {
                 $sp_calc[$scale_temp] = $scale_temp;
             }
         }
-        
+
     // Berechne in allen (verbliebenen Skalen) die gewichteten Fisher-Informationen und wähle Item mit höchster weighted_FI
-    
+
     $items_FI = [];
     foreach ($item_calc as $item_id => $item) {
         if ($test_strategie == 'classTest') { break; }
-        
+
         $offset = 0;
         $scale_id = $item['Scale'];
         $weighted_FI = 0;
         do {
             $offset = strpos($scale_id, "/", $offset+1);
             $scale = (($offset)?(substr($scale_id, 0, $offset)):($scale_id));
-            
+
             if (in_array($scale, $sp_calc) &&  ($pp_calc[$scale] !== FALSE)) {
                 $ti_temp = ($se_calc[$scale] > 0)?((1/$se_calc[$scale]) ** 2):(0);
                 $temp_FI = fi_2pl($item['ip'], $pp_calc[$scale])
@@ -194,16 +196,16 @@ foreach ($responses as $person_id => $response_pattern) {
                     $temp_FI *= 1 / (1 + exp(- $ti_temp * ($pp_calc[$scale] - $pp_calc[$scale_root]))); // Skalen-Term
                     $temp_FI *= (1 / (1 + exp($ti_temp * 2 * (0.5 - $f_calc[$scale]) * ($item['ip']['a'] - $pp_calc[$scale])))) ** max(1, $N_calc[$scale] - $N_min + 1); // Item-Term
                 }
-                 
+
                 $weighted_FI = (($temp_FI > $weighted_FI)?($temp_FI) : ($weighted_FI));
-            } 
+            }
             if ($test_strategie == 'radCAT')  { break; }
         } while ($offset);
         if ($weighted_FI > 0) {
             $items_FI[$item_id] = $weighted_FI;
         }
     }
-    
+
     if ( $test_strategie != 'classTest') {
         arsort($items_FI);
         if (array_keys($items_FI)) {
@@ -214,24 +216,24 @@ foreach ($responses as $person_id => $response_pattern) {
             break;
         }
     }
-    
+
     if (($test_strategie == 'classTest') && (count($item_calc) == 0)) {
         $out_step_data .= "\n".$person_id.";end;kein Item übrig";
         # echo "nichts mehr zum Ausspielen"; die();
         break;
     }
-  
+
     $out_step_data .= "\n".$person_id.";".($n+1);
-    
+
     // Entferne gezeigtes Item aus der Item-Liste und füge es der zu berechenden Listen hinzu.
     $item_calc[$item_id]['k'] = $response_pattern[$item_id];
     $scale =  $item_calc[$item_id]['Scale'];
     $item_played[] = $item_calc[$item_id];
-    
+
     $out_step_data .= ";". $item_id . ";". '"' . sprintf("%01.2f", round($item_calc[$item_id]['ip']['a'], 2)). '"'.";".'"'. sprintf("%01.2f",round($item_calc[$item_id]['ip']['b'], 2)).'"'.";".'"'. $item_calc[$item_id]['k'].'"';
     $out_step_data_tmp =  $out_step_template;
-    
-    unset ($item_calc[$item_id]); 
+
+    unset ($item_calc[$item_id]);
 
     // Berechne für alle assozierten Skalen die PP, SE und N
     $offset = 0;
@@ -243,23 +245,23 @@ foreach ($responses as $person_id => $response_pattern) {
         $scale_temp = (($offset)?(substr($scale, 0, $offset)):($scale));
         $item_temp = [];
         $item_temp = array_filter($item_played, function($v, $k) { global $scale_temp; return (substr($v['Scale'], 0, strlen($scale_temp)) == $scale_temp); }, ARRAY_FILTER_USE_BOTH);
-        
+
         $N_calc[$scale_temp] = count($item_temp);
         if (($N_calc[$scale_temp] > 0) || ($scale_temp == $scale_root)) {
             $pp_prev[$scale_temp] = $pp_calc[$scale_temp];
             $pp_calc[$scale_temp] = pp_2pl_est($item_temp, ($pp_calc[$scale_temp] !== FALSE)?($pp_calc[$scale_temp]):($pp_parent), $pp_parent, $se_parent);
             $se_calc[$scale_temp] = se_2pl($item_temp, $pp_calc[$scale_temp]);
-            
+
             $frac_temp = array_map(function ($v) { return $v['k']; } , $item_temp);
             $frac_sum = array_sum($frac_temp);
             $f_calc[$scale_temp] = $frac_sum / $N_calc[$scale_temp];
-            
+
             $out_step_data_tmp = str_replace("{".$scale_temp."}", '"'.round($pp_calc[$scale_temp], 2)." (SE ".round($se_calc[$scale_temp], 2)." bei ".$N_calc[$scale_temp]." Fragen mit R/W-Rate ".round($f_calc[$scale_temp], 2).")".'"', $out_step_data_tmp);
-                        
+
             if (round($f_calc[$scale_temp], 0) != $f_calc[$scale_temp] ) {
                 $pp_parent = $pp_calc[$scale_temp];
                 $se_parent = $se_calc[$scale_temp];
-                
+
                 # Alle unterliegenden Skalen mit round($f_calc, 0) == $f_calc nachberechnen (evtl. kommt es dadurch zu Doppelberechnungen!)
                 foreach ($sp as $scale_id => $scale_val) {
                     # if ($scale_id != $scale_val) {continue;} // Skippe alle ungenutzten oder ausgeschlossenen Skalen
@@ -274,29 +276,29 @@ foreach ($responses as $person_id => $response_pattern) {
                 # echo "Nachberechnen: $scale_id: ".$pp_calc[$scale_id]." bei ".$N_calc[$scale_id]." Fragen mit ".$f_calc[$scale_id]." R/W-Rate<br>\n";
                 }
             }
-        }    
+        }
     } while ($offset);
-    
+
     $out_step_data .= $out_step_data_tmp;
-    
+
     // Lege Skalen still, die Höchst-Kriterien erreichen
     $offset = 0;
     do {
         if ( $test_strategie == 'classTest') { break; }
         $offset = strpos($scale, "/", $offset+1);
         $scale_temp = (($offset)?(substr($scale, 0, $offset)):($scale));
-        if ((in_array($scale_temp, $sp_calc))) { 
-        
+        if ((in_array($scale_temp, $sp_calc))) {
+
         if (($N_calc[$scale_temp] >= $N_max) || (($se_calc[$scale_temp] <= $se_min) && abs($pp_prev[$scale_temp]-$pp_calc[$scale_temp]) <= $pp_incmin )) {
             unset ($sp_calc[array_keys($sp_calc, $scale_temp)[0]]);
-            unset ($sp_calc[$scale_temp]); 
-            
+            unset ($sp_calc[$scale_temp]);
+
             if ($N_calc[$scale_temp] >= $N_max) { $out_step_data .= "\n".$person_id.";drop;".$scale_temp.";N_scale:;".$N_calc[$scale_temp]."; >=".$N_max; }
             if (($se_calc[$scale_temp] <= $se_min) && abs($pp_prev[$scale_temp]-$pp_calc[$scale_temp]) <= $pp_incmin ) { $out_step_data .= "\n".$person_id.";drop;".$scale_temp.";se_scale:;".$se_calc[$scale_temp]."; <=".$se_min.";delta (pp):".abs($pp_prev[$scale_temp]-$pp_calc[$scale_temp])."; <=".$pp_incmin; }
-            
+
             // Vererbe alle PP (zu- bzw. abzüglich eines SE) den noch unberechneten Sub-Skalen
             $pp_temp = array_filter($pp_calc, function($v, $k) { global $scale_temp; return (substr($k, 0, strlen($scale_temp)) == $scale_temp) && (substr_count($k, "/") == substr_count($scale_temp, "/") + 1) && (!$v); }, ARRAY_FILTER_USE_BOTH);
-            
+
             $pp_inhere = $pp_calc[$scale_temp];
             if ($test_strategie == 'defCAT')  {
                 $pp_inhere = $pp_calc[$scale_temp] - $se_calc[$scale_temp];
@@ -304,37 +306,37 @@ foreach ($responses as $person_id => $response_pattern) {
              if ($test_strategie == 'strenCAT')  {
                 $pp_inhere = $pp_calc[$scale_temp] + $se_calc[$scale_temp];
             }
-            
+
             foreach ($pp_temp as $pp_scale => $pp_value) {
-                
+
                 $out_step_data .= "\n".$person_id.";inhere;".$pp_scale.";pp:;".$pp_inhere.";from:;".$scale_temp.":;".$pp_calc[$scale_temp];
-                
+
                 $pp_calc[$pp_scale] = $pp_inhere;
             }
-        }}        
+        }}
     } while ($offset);
-    
+
     // Prüfe, ob noch Skalen oder Items übrig sind
     $scale_temp = array_filter($sp_calc, function($v, $k) { return ($v == $k); }, ARRAY_FILTER_USE_BOTH);
     if (count($scale_temp) == 0) {
         $out_step_data .= "\n".$person_id.";end;keine Skala übrig";
-        break; 
+        break;
     }
-    if (count($N_calc) <= 0) { 
+    if (count($N_calc) <= 0) {
         $out_step_data .= "\n".$person_id.";end;keine Items übrig";
-        break; 
+        break;
     };
-    
+
     /*
     if ($se_calc[$scale_root] < $se_min) { break; }
     */
     }
 
-  
+
     echo "<br><br> <b>Ergebnis:</b>";
-    
+
     echo "<br> Globalskala PP: ".round($pp_calc[$scale_root],2)." (".round($se_calc[$scale_root],2).") mit ".$N_calc[$scale_root]." Items und ".round($f_calc[$scale_root], 2)." mittlerer Punktzahl<br>";
-    
+
     if ($test_strategie == 'defCAT')  {
         asort ($pp_calc);
     }
@@ -344,44 +346,44 @@ foreach ($responses as $person_id => $response_pattern) {
     if ($test_strategie == 'strenCAT')  {
         arsort ($pp_calc);
     }
-    
+
     $output_diag_scale = "";
     $output_diag_pp = "";
-    
+
     $n = true;
     foreach ($pp_calc as $scale => $value) {
-        
+
         if ($value && (strlen($scale)>strlen($scale_root) + 2) && ($N_calc[$scale] >= $N_min) && ($se_calc[$scale] <= $se_max)) {
             #if ($value && (strlen($scale)>strlen($scale_root)) && ($N_calc[$scale] > $N_min)) { // zu Debug-Zwecken alle Ergebnisse ausgeben
-        
+
             echo "<br> Skala ".$scale." PP: ".round($value, 2)." (".round($se_calc[$scale], 2).") mit ".$N_calc[$scale]." Items und ".round($f_calc[$scale], 2)." mittlerer Punktzahl";
-        
+
             // Teste, ob das Ergebnis das valide Diagnose-Resultat ist
-        
+
             $valid_result = false;
-        
+
             if ($test_strategie == 'defCAT') {
                 // NOTE: Bei Defizit-CAT muss Skalen-PP kleiner gleich als Global-PP sein und mittlere Fraction < 1,
                 // akzeptiere nur die erste Skala
                 $valid_result = ($n && ($f_calc[$scale] < 1) && ($value <= $pp_calc[$scale_root]));
             }
-        
+
             elseif ($test_strategie == 'strenCAT') {
                 // NOTE: Bei Stärken-CAT muss Skalen-PP größer gleich als Global-PP sein und mittlere Fraction > 0,
                 // akzeptiere nur die erste Skala
                 $valid_result = ($n && ($f_calc[$scale] > 0) && ($value >= $pp_calc[$scale_root]));
             }
-            
+
             else {
                 // NOTE: Ansonsten akzeptiere nur Skalen, die gemischt beantwortet wurden (mittlere Fraction nicht 0 oder 1)
                 $valid_result = (round($f_calc[$scale],0) !== $f_calc[$scale]);
             }
-        
+
             if ($valid_result) {
                 $output .= "\n".$person_id;
                 $output .= ";".round($pp_calc[$scale_root], 2).";".round($se_calc[$scale_root], 2).";".$N_calc[$scale_root].";".round($f_calc[$scale_root], 2);
                 $output .= ";".$scale.";".round($value, 2).";".round($se_calc[$scale], 2).";".$N_calc[$scale].";".round($f_calc[$scale], 2);
-   
+
                 $n = false;
                 echo "<b> &lArr; DAS IST DIAGNOSE-ERGEBNIS</b>";
             }
@@ -392,14 +394,14 @@ foreach ($responses as $person_id => $response_pattern) {
             $output_diag_pp .= round($value, 2). " (".round($se_calc[$scale], 2). " | ".$N_calc[$scale]." | ".round($f_calc[$scale], 2).") ";
         }
     }
-    
+
     if ( $n ) {
         // Schreibe ersatzweise den Zeilenanfang, wenn kein eindeutiges Diagnoseergebnis ermittelt wurde
-        $output .= "\n".$person_id; 
-        $output .= ";".round($pp_calc[$scale_root], 2).";".round($se_calc[$scale_root], 2).";".$N_calc[$scale_root].";".round($f_calc[$scale_root], 2). ";;;;;";    
+        $output .= "\n".$person_id;
+        $output .= ";".round($pp_calc[$scale_root], 2).";".round($se_calc[$scale_root], 2).";".$N_calc[$scale_root].";".round($f_calc[$scale_root], 2). ";;;;;";
     }
     $output .= ";". $output_diag_scale. ";". $output_diag_pp;
-    
+
     $out_step_data_tmp_pp = "\n".$person_id.";RESULT;;;;pp". $out_step_template;
     $out_step_data_tmp_se =  "\n;;;;;se".$out_step_template;
     $out_step_data_tmp_f =  "\n;;;;;frac".$out_step_template;
