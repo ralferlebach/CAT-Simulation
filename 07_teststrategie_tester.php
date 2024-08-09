@@ -143,7 +143,7 @@ foreach ($responses as $person_id => $response_pattern) {
         foreach ($pp_calc as $scale_temp => $pp_value) {
             if (!array_key_exists($scale_temp, $sp_calc)) { continue; }
             if (($test_strategie === 'radCAT') || ($test_strategie === 'classTest'))  { break; }
-            if (($test_strategie === 'allScales') && ($N_calc[$scale_temp] < $N_min)) { break; }
+            if (($test_strategie === 'allScales') && ($N_calc[$scale_temp] < $N_min)) { continue; }
 
             if (!$pp_value) { continue; }
 
