@@ -14,11 +14,11 @@ require_once ('Daten/responses ' . $irt_model . ' V1.php');
 #die;
 
 # $test_strategie = 'radCAT'; // radikaler CAT
-# $test_strategie = 'classTest'; // klassischer Test
+ $test_strategie = 'classTest'; // klassischer Test
 # $test_strategie = 'defCAT'; // Adaptive Test for Deficency
 # $test_strategie = 'strenCAT'; // Adaptive Test for Strength
 # $test_strategie = 'relScales'; // Adaptive Test for relevant Scales
- $test_strategie = 'allScales'; // Adaptive Test for all Scales
+# $test_strategie = 'allScales'; // Adaptive Test for all Scales
 
 $pp_start = 0; #0.02;
 $pp_start = 0.02;
@@ -86,8 +86,8 @@ foreach ($items as $scale_id => $scale) {
     }
 }
 
-if ($test_strategie === 'calssTest') {
-    $N_total = coutn($ip);
+if ($test_strategie === 'classTest') {
+    $N_total = count($ip);
     $N_max = $N_total;
 }
 
@@ -142,7 +142,9 @@ foreach ($responses as $person_id => $response_pattern) {
         // Sperre alle Skalen, die nicht (mehr) genügend Test-Information haben
         foreach ($pp_calc as $scale_temp => $pp_value) {
             if (!array_key_exists($scale_temp, $sp_calc)) { continue; }
-            if (($test_strategie === 'radCAT') || ($test_strategie === 'allScales') || ($test_strategie === 'classTest'))  { break; }
+            if (($test_strategie === 'radCAT') || ($test_strategie === 'classTest'))  { break; }
+            if (($test_strategie === 'allScales') && ($N_calc[$scale_temp] > $N_min)) { break; }
+
             if (!$pp_value) { continue; }
 
             $item_temp = array_filter($item_calc, function($v, $k) { global $scale_temp; return substr($v['Scale'], 0, strlen($scale_temp)) == $scale_temp; }, ARRAY_FILTER_USE_BOTH);
@@ -366,14 +368,10 @@ foreach ($responses as $person_id => $response_pattern) {
     $n = true;
     foreach ($pp_calc as $scale => $value) {
 
+        $valid_result = false;
+        // Teste, ob das Ergebnis das valide Diagnose-Resultat ist
         if ($value && (strlen($scale)>strlen($scale_root) + 2) && ($N_calc[$scale] >= $N_min) && ($se_calc[$scale] <= $se_max)) {
-            #if ($value && (strlen($scale)>strlen($scale_root)) && ($N_calc[$scale] > $N_min)) { // zu Debug-Zwecken alle Ergebnisse ausgeben
-
-            echo "<br> Skala ".$scale." PP: ".round($value, 2)." (".round($se_calc[$scale], 2).") mit ".$N_calc[$scale]." Items und ".round($f_calc[$scale], 2)." mittlerer Punktzahl";
-
-            // Teste, ob das Ergebnis das valide Diagnose-Resultat ist
-
-            $valid_result = false;
+            // für gewöhnlich (radCAT, strenCAT, defCAT, relScales): Mindestanzahl an Fragen und unter max. SE
 
             if ($test_strategie === 'defCAT') {
                 // NOTE: Bei Defizit-CAT muss Skalen-PP kleiner gleich als Global-PP sein und mittlere Fraction < 1,
@@ -387,24 +385,25 @@ foreach ($responses as $person_id => $response_pattern) {
                 $valid_result = ($n && ($f_calc[$scale] > 0) && ($value >= $pp_calc[$scale_root]));
             }
 
-            elseif ($test_strategie === 'allScales') {
-                // NOTE: Bei Alle Skalen werden alle Skalen bedingungslos angegeben
-                $valid_result = true;
-            }
-
             else {
                 // NOTE: Ansonsten akzeptiere nur Skalen, die gemischt beantwortet wurden (mittlere Fraction nicht 0 oder 1)
                 $valid_result = (round($f_calc[$scale],0) !== $f_calc[$scale]);
             }
+        }
+        if ($test_strategie === 'classTest' || $test_strategie === 'allScales') {
+            // NOTE: Bei klassischem Test und Alle Skalen werden alle Skalen bedingungslos angegeben
+            $valid_result = true;
+        }
 
-            if ($valid_result) {
-                $output .= "\n".$person_id;
-                $output .= ";".round($pp_calc[$scale_root], 2).";".round($se_calc[$scale_root], 2).";".$N_calc[$scale_root].";".round($f_calc[$scale_root], 2);
-                $output .= ";".$scale.";".round($value, 2).";".round($se_calc[$scale], 2).";".$N_calc[$scale].";".round($f_calc[$scale], 2);
+        if ($valid_result) {
+            echo "<br> Skala ".$scale." PP: ".round($value, 2)." (".round($se_calc[$scale], 2).") mit ".$N_calc[$scale]." Items und ".round($f_calc[$scale], 2)." mittlerer Punktzahl";
 
-                $n = false;
-                echo "<b> &lArr; DAS IST DIAGNOSE-ERGEBNIS</b>";
-            }
+            $output .= "\n".$person_id;
+            $output .= ";".round($pp_calc[$scale_root], 2).";".round($se_calc[$scale_root], 2).";".$N_calc[$scale_root].";".round($f_calc[$scale_root], 2);
+            $output .= ";".$scale.";".round($value, 2).";".round($se_calc[$scale], 2).";".$N_calc[$scale].";".round($f_calc[$scale], 2);
+
+            $n = false;
+            echo "<b> &lArr; DAS IST DIAGNOSE-ERGEBNIS</b>";
         }
         # if (($value && (strlen($scale)>strlen($scale_root) + 2)) && ($f_calc[$scale] < 1) && ($value <= $pp_calc[$scale_root]) && ($N_calc[$scale] > 0) && ($f_calc[$scale] > 0)) {
         if (($value && (strlen($scale)>strlen($scale_root) + 2)) && ($f_calc[$scale] < 1) && ($value <= $pp_calc[$scale_root]) && ($N_calc[$scale] > 0)) {
