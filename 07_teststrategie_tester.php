@@ -18,7 +18,7 @@ require_once ('Daten/responses ' . $irt_model . ' V1.php');
 # $test_strategie = 'defCAT'; // Adaptive Test for Deficency
 # $test_strategie = 'strenCAT'; // Adaptive Test for Strength
 # $test_strategie = 'relScales'; // Adaptive Test for relevant Scales
-# $test_strategie = 'allScales'; // Adaptive Test for all Scales
+ $test_strategie = 'allScales'; // Adaptive Test for all Scales
 
 $pp_start = 0; #0.02;
 $pp_start = 0.02;
@@ -143,7 +143,7 @@ foreach ($responses as $person_id => $response_pattern) {
         foreach ($pp_calc as $scale_temp => $pp_value) {
             if (!array_key_exists($scale_temp, $sp_calc)) { continue; }
             if (($test_strategie === 'radCAT') || ($test_strategie === 'classTest'))  { break; }
-            if (($test_strategie === 'allScales') && ($N_calc[$scale_temp] > $N_min)) { break; }
+            if (($test_strategie === 'allScales') && ($N_calc[$scale_temp] < $N_min)) { break; }
 
             if (!$pp_value) { continue; }
 
