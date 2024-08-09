@@ -26,9 +26,9 @@ $se_start = 1; #2.97;
 $se_start = 2.97;
 $pp_incmin = 0.1;
 $se_min = 0.25;
-$se_min = 0.35;
+# $se_min = 0.35;
 $se_max = 0.5;
-$se_max = 1.5;
+# $se_max = 1.5;
 $N_total = 250;
 $N_max = 10;
 $N_min = 3;
@@ -99,8 +99,13 @@ foreach ($sp as $scale_id => $scale_value) {
     $out_step_header .= ";".$scale_id;
     $out_step_template .= ";{".$scale_id."}";
 
-    $pp[$scale_id] = FALSE;
-    $pp_prev[$scale_id] = FALSE;
+    $pp[$scale_id] = false;
+    $pp_prev[$scale_id] = false;
+
+    if ($test_strategie === "classTest" || $test_strategie === "allScales") {
+        $pp[$scale_id] = $pp_start;
+    }
+
     $se[$scale_id] = 0;
     $N_items[$scale_id] = 0;
     $N_normmax[$scale_id] = min($N_max, count(array_filter($ip, function($v, $k) { global $scale_id; return (substr($v['Scale'], 0, strlen($scale_id)) == $scale_id); }, ARRAY_FILTER_USE_BOTH)));
