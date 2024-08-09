@@ -16,9 +16,9 @@ require_once ('Daten/responses ' . $irt_model . ' V1.php');
 # $test_strategie = 'radCAT'; // radikaler CAT
 # $test_strategie = 'classTest'; // klassischer Test
 # $test_strategie = 'defCAT'; // Adaptive Test for Deficency
- $test_strategie = 'strenCAT'; // Adaptive Test for Strength
+# $test_strategie = 'strenCAT'; // Adaptive Test for Strength
 # $test_strategie = 'relScales'; // Adaptive Test for relevant Scales
-# $test_strategie = 'allScales'; // Adaptive Test for all Scales
+ $test_strategie = 'allScales'; // Adaptive Test for all Scales
 
 $pp_start = 0; #0.02;
 $pp_start = 0.02;
@@ -29,11 +29,11 @@ $se_min = 0.25;
 $se_min = 0.35;
 $se_max = 0.5;
 $se_max = 1.5;
-$N_total = 25;
+$N_total = 250;
 $N_max = 10;
 $N_min = 3;
 
-if ($test_strategie == 'radCAT') {
+if ($test_strategie === 'radCAT') {
     $N_max = $N_total;
 }
 
@@ -56,7 +56,9 @@ foreach ($items as $scale_id => $value) {
         $offset = strpos($scale_id, "/", $offset+1);
         $scale_temp = (($offset)?(substr($scale_id, 0, $offset)):($scale_id));
 
-        if (($test_strategie === 'radCAT') || ($test_strategie === 'allCAT')) {
+        if (($test_strategie === 'radCAT') || ($test_strategie === 'allScales')) {
+            // Schalte bei (radikalen) CAT sowie bei "alle Skalen" gleich zu Beginn alle Skalen frei.
+
             $sp[$scale_temp] = $scale_temp;
         } else {
             $sp[$scale_temp] = FALSE;
@@ -84,7 +86,7 @@ foreach ($items as $scale_id => $scale) {
     }
 }
 
-if ($test_strategie == 'calssTest') {
+if ($test_strategie === 'calssTest') {
     $N_total = coutn($ip);
     $N_max = $N_total;
 }
@@ -140,9 +142,8 @@ foreach ($responses as $person_id => $response_pattern) {
         // Sperre alle Skalen, die nicht (mehr) genügend Test-Information haben
         foreach ($pp_calc as $scale_temp => $pp_value) {
             if (!array_key_exists($scale_temp, $sp_calc)) { continue; }
-            if ($test_strategie == 'radCAT')  { break; }
+            if (($test_strategie === 'radCAT') || ($test_strategie === 'allScales') || ($test_strategie === 'classTest'))  { break; }
             if (!$pp_value) { continue; }
-            if ($test_strategie == 'classTest') { break; }
 
             $item_temp = array_filter($item_calc, function($v, $k) { global $scale_temp; return substr($v['Scale'], 0, strlen($scale_temp)) == $scale_temp; }, ARRAY_FILTER_USE_BOTH);
 
@@ -171,7 +172,7 @@ foreach ($responses as $person_id => $response_pattern) {
 
     $items_FI = [];
     foreach ($item_calc as $item_id => $item) {
-        if ($test_strategie == 'classTest') { break; }
+        if ($test_strategie === 'classTest') { break; }
 
         $offset = 0;
         $scale_id = $item['Scale'];
@@ -186,27 +187,32 @@ foreach ($responses as $person_id => $response_pattern) {
                     // Hier die Penalty-Funktion, jetzt gesetzt auf 1
                      * 1;
                 // Hier die strategie-spezifische Selektions-Funktion
-                if ($test_strategie == 'defCAT')  {
+                if ($test_strategie === 'defCAT')  {
                     $temp_FI *= max(0.1, $ti_temp) / max(1, $N_calc[$scale]); // Prozess-Term
                     $temp_FI *= 1 / (1 + exp($ti_temp * ($pp_calc[$scale] - $pp_calc[$scale_root]))); // Skalen-Term
                     $temp_FI *= (1 / (1 + exp($ti_temp * 2 * (0.5 - $f_calc[$scale]) * ($item['ip']['a'] - $pp_calc[$scale])))) ** max(1, $N_calc[$scale] - $N_min + 1); // Item-Term
                 }
-                if ($test_strategie == 'strenCAT')  {
+                if ($test_strategie === 'strenCAT')  {
                     $temp_FI *= max(0.1, $ti_temp) / max(1, $N_calc[$scale]); // Prozess-Term
                     $temp_FI *= 1 / (1 + exp(- $ti_temp * ($pp_calc[$scale] - $pp_calc[$scale_root]))); // Skalen-Term
+                    $temp_FI *= (1 / (1 + exp($ti_temp * 2 * (0.5 - $f_calc[$scale]) * ($item['ip']['a'] - $pp_calc[$scale])))) ** max(1, $N_calc[$scale] - $N_min + 1); // Item-Term
+                }
+                if ($test_strategie === 'allScales' || $test_strategie === 'relScales')  {
+                    $temp_FI *= max(0.1, $ti_temp) / max(1, $N_calc[$scale]); // Prozess-Term
+                    $temp_FI *= 1; // Skalen-Term
                     $temp_FI *= (1 / (1 + exp($ti_temp * 2 * (0.5 - $f_calc[$scale]) * ($item['ip']['a'] - $pp_calc[$scale])))) ** max(1, $N_calc[$scale] - $N_min + 1); // Item-Term
                 }
 
                 $weighted_FI = (($temp_FI > $weighted_FI)?($temp_FI) : ($weighted_FI));
             }
-            if ($test_strategie == 'radCAT')  { break; }
+            if ($test_strategie === 'radCAT')  { break; }
         } while ($offset);
         if ($weighted_FI > 0) {
             $items_FI[$item_id] = $weighted_FI;
         }
     }
 
-    if ( $test_strategie != 'classTest') {
+    if ( $test_strategie !== 'classTest') {
         arsort($items_FI);
         if (array_keys($items_FI)) {
             $item_id = array_keys($items_FI)[0];
@@ -217,7 +223,7 @@ foreach ($responses as $person_id => $response_pattern) {
         }
     }
 
-    if (($test_strategie == 'classTest') && (count($item_calc) == 0)) {
+    if (($test_strategie === 'classTest') && (count($item_calc) == 0)) {
         $out_step_data .= "\n".$person_id.";end;kein Item übrig";
         # echo "nichts mehr zum Ausspielen"; die();
         break;
@@ -284,7 +290,8 @@ foreach ($responses as $person_id => $response_pattern) {
     // Lege Skalen still, die Höchst-Kriterien erreichen
     $offset = 0;
     do {
-        if ( $test_strategie == 'classTest') { break; }
+        if ( $test_strategie === 'classTest') { break; }
+
         $offset = strpos($scale, "/", $offset+1);
         $scale_temp = (($offset)?(substr($scale, 0, $offset)):($scale));
         if ((in_array($scale_temp, $sp_calc))) {
@@ -300,10 +307,10 @@ foreach ($responses as $person_id => $response_pattern) {
             $pp_temp = array_filter($pp_calc, function($v, $k) { global $scale_temp; return (substr($k, 0, strlen($scale_temp)) == $scale_temp) && (substr_count($k, "/") == substr_count($scale_temp, "/") + 1) && (!$v); }, ARRAY_FILTER_USE_BOTH);
 
             $pp_inhere = $pp_calc[$scale_temp];
-            if ($test_strategie == 'defCAT')  {
+            if ($test_strategie === 'defCAT')  {
                 $pp_inhere = $pp_calc[$scale_temp] - $se_calc[$scale_temp];
             }
-             if ($test_strategie == 'strenCAT')  {
+             if ($test_strategie === 'strenCAT')  {
                 $pp_inhere = $pp_calc[$scale_temp] + $se_calc[$scale_temp];
             }
 
@@ -337,14 +344,20 @@ foreach ($responses as $person_id => $response_pattern) {
 
     echo "<br> Globalskala PP: ".round($pp_calc[$scale_root],2)." (".round($se_calc[$scale_root],2).") mit ".$N_calc[$scale_root]." Items und ".round($f_calc[$scale_root], 2)." mittlerer Punktzahl<br>";
 
-    if ($test_strategie == 'defCAT')  {
+    if ($test_strategie === 'defCAT')  {
+        // Sortiere nach schwächster Skala zuerst
         asort ($pp_calc);
     }
-    if ($test_strategie == 'classTest')  {
+    if ($test_strategie === 'classTest')  {
         asort ($pp_calc);
     }
     if ($test_strategie == 'strenCAT')  {
+        // Sortiere nach stärkster Skala zuerst
         arsort ($pp_calc);
+    }
+    if ($test_strategie == 'relScales' || $test_strategie === 'allScales') {
+        // Sortiere nach Skalen-Name (bzw. Anordnung)
+        ksort ($pp_calc);
     }
 
     $output_diag_scale = "";
@@ -362,16 +375,21 @@ foreach ($responses as $person_id => $response_pattern) {
 
             $valid_result = false;
 
-            if ($test_strategie == 'defCAT') {
+            if ($test_strategie === 'defCAT') {
                 // NOTE: Bei Defizit-CAT muss Skalen-PP kleiner gleich als Global-PP sein und mittlere Fraction < 1,
                 // akzeptiere nur die erste Skala
                 $valid_result = ($n && ($f_calc[$scale] < 1) && ($value <= $pp_calc[$scale_root]));
             }
 
-            elseif ($test_strategie == 'strenCAT') {
+            elseif ($test_strategie === 'strenCAT') {
                 // NOTE: Bei Stärken-CAT muss Skalen-PP größer gleich als Global-PP sein und mittlere Fraction > 0,
                 // akzeptiere nur die erste Skala
                 $valid_result = ($n && ($f_calc[$scale] > 0) && ($value >= $pp_calc[$scale_root]));
+            }
+
+            elseif ($test_strategie === 'allScales') {
+                // NOTE: Bei Alle Skalen werden alle Skalen bedingungslos angegeben
+                $valid_result = true;
             }
 
             else {
