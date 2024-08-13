@@ -258,7 +258,7 @@ foreach ($responses as $person_id => $response_pattern) {
         $offset = strpos($scale, "/", $offset+1);
         $scale_temp = (($offset)?(substr($scale, 0, $offset)):($scale));
         $item_temp = [];
-        $item_temp = array_filter($item_played, function($v, $k) { global $scale_temp; return (substr($v['Scale'], 0, strlen($scale_temp)) == $scale_temp); }, ARRAY_FILTER_USE_BOTH);
+        $item_temp = array_filter($item_played, function($v, $k) use ($scale_temp) {return (substr($v['Scale'], 0, strlen($scale_temp)) === $scale_temp); }, ARRAY_FILTER_USE_BOTH);
 
         $N_calc[$scale_temp] = count($item_temp);
         if (($N_calc[$scale_temp] > 0) || ($scale_temp == $scale_root)) {
