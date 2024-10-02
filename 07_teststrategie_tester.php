@@ -30,7 +30,7 @@ $se_min = 0.25;
 $se_max = 0.5;
 # $se_max = 1.5;
 $N_total = 35;
-# $N_total = 250;
+$N_total = 250;
 $N_max = 10;
 $N_min = 3;
 
@@ -169,15 +169,15 @@ foreach ($responses as $person_id => $response_pattern) {
                 $sp_calc[$scale_temp] = FALSE;
                 }
             } else {
-                // Checke bei "AllScales", ob noch Skalen mit weniger als der Mindestanzahl unterwegs sind.
+                // Checke bei "allScales", ob noch Skalen mit weniger als der Mindestanzahl unterwegs sind.
                 if ($test_strategie === 'allScales') {
                     $react = TRUE;
                     foreach ($sp_calc as $test_scale => $test_val) {
-                        if (($test_val <> FALSE) && ($N_calc[$test_scale] < $N_min)) {
+                        if ($N_calc[$test_scale] < $N_min) {
                             $out_step_data .= "\n".$person_id.";deact;".$scale_temp.";N_calc:;".($test_scale)."; <".($N_min);
                             $sp_calc[$scale_temp] = FALSE;
                             $react = FALSE;
-                            continue;
+                            break;
                         }
                     }
                     if ($react) {
