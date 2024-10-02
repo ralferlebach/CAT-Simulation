@@ -30,7 +30,7 @@ $se_min = 0.25;
 $se_max = 0.5;
 # $se_max = 1.5;
 $N_total = 35;
- $N_total = 250;
+# $N_total = 250;
 $N_max = 10;
 $N_min = 3;
 
@@ -169,10 +169,25 @@ foreach ($responses as $person_id => $response_pattern) {
                 $sp_calc[$scale_temp] = FALSE;
                 }
             } else {
-                if (!$sp_calc[$scale_temp]) {
+                // Checke bei "AllScales", ob noch Skalen mit weniger als der Mindestanzahl unterwegs sind.
+                if ($test_strategie === 'allScales') {
+                    $react = TRUE;
+                    foreach ($sp_calc as $test_scale => $test_val) {
+                        if (($test_val <> FALSE) && ($N_calc[$test_scale] < $N_min) {
+                            $out_step_data .= "\n".$person_id.";deact;".$scale_temp.";N_calc:;".($test_scale)."; <".($N_min);
+                            $sp_calc[$scale_temp] = FALSE;
+                            $react = FALSE;
+                            continue;
+                        }
+                    }
+                    if ($react) {
+                        $out_step_data .= "\n".$person_id.";enact;".$scale_temp.";N_calc:;\"all scales\"; >=".($N_min);
+                        $sp_calc[$scale_temp] = $scale_temp;
+                    }
+                } else if (!$sp_calc[$scale_temp]) {
                         $out_step_data .= "\n".$person_id.";enact;".$scale_temp.";TP+TI:;".($tp_temp + $ti_temp)."; >=".(1/$se_max ** 2);
+                        $sp_calc[$scale_temp] = $scale_temp;
                 }
-                $sp_calc[$scale_temp] = $scale_temp;
             }
         }
 
@@ -272,7 +287,7 @@ foreach ($responses as $person_id => $response_pattern) {
 
             $out_step_data_tmp = str_replace("{".$scale_temp."}", '"'.round($pp_calc[$scale_temp], 2)." (SE ".round($se_calc[$scale_temp], 2)." bei ".$N_calc[$scale_temp]." Fragen mit R/W-Rate ".round($f_calc[$scale_temp], 2).")".'"', $out_step_data_tmp);
 
-            if (round($f_calc[$scale_temp], 0) != $f_calc[$scale_temp] ) {
+            if (round($f_calc[$scale_temp], 0) != round($f_calc[$scale_temp], 6) ) {
                 $pp_parent = $pp_calc[$scale_temp];
                 $se_parent = $se_calc[$scale_temp];
 
