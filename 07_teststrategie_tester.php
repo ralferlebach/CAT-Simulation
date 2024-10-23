@@ -260,10 +260,33 @@ foreach ($responses as $person_id => $response_pattern) {
         $item_temp = [];
         $item_temp = array_filter($item_played, function($v, $k) use ($scale_temp) {return (substr($v['Scale'], 0, strlen($scale_temp)) === $scale_temp); }, ARRAY_FILTER_USE_BOTH);
 
+        // Lege auch glweich ein alternatives Modell des Testverlaufes an, indem id letzte Frage "geflippt" beantwortet wurde.
+        $item_alternate = $item_temp;
+        $item_alternate[array_key_last($item_alternate)]['k'] = abs( 1 - $item_alternate[array_key_last($item_alternate)]['k']);
+
+
         $N_calc[$scale_temp] = count($item_temp);
         if (($N_calc[$scale_temp] > 0) || ($scale_temp == $scale_root)) {
             $pp_prev[$scale_temp] = $pp_calc[$scale_temp];
             $pp_calc[$scale_temp] = pp_2pl_est($item_temp, ($pp_calc[$scale_temp] !== FALSE)?($pp_calc[$scale_temp]):($pp_parent), $pp_parent, $se_parent);
+
+            // Alternative Berechung im Falle, dass pp nur mittels EAP geschätzt werden konnte und 3 oder mehr Fragen auszuwerten sind:
+            if ((round($f_calc[$scale_temp], 0) == round($f_calc[$scale_temp], 6)) && ($N_calc[$scale_temp] > 2)) {
+
+                $pp_alternate = pp_2pl_est($item_alternate, ($pp_calc[$scale_temp] !== FALSE)?($pp_calc[$scale_temp]):($pp_parent), $pp_parent, $se_parent);
+
+                // Prüfe nun, welches von beiden Ergebnissen ferner vom pp_parent entfernt (in der selben Richtung!) liegt:
+                if (($pp_alternate <=> $pp_calc[$scale_temp]) == ($pp_calc[$scale_temp] <=> $pp_parent)) {
+
+                    print_r ($item_alternate[array_key_last($item_alternate)]);
+                    echo "Skala $scale_temp with N ".$N_calc[$scale_temp]." & frac ".$f_calc[$scale_temp];
+                    echo " pp_alternate $pp_alternate replaces pp ".$pp_calc[$scale_temp]." @ pp_parent $pp_parent with se_parent $se_parent";
+                    echo "<br>";
+
+                    $pp_calc[$scale_temp] = $pp_alternate;
+                }
+            }
+
             $se_calc[$scale_temp] = se_2pl($item_temp, $pp_calc[$scale_temp]);
 
             $frac_temp = array_map(function ($v) { return $v['k']; } , $item_temp);
