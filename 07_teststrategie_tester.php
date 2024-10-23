@@ -17,7 +17,7 @@ require_once ('Daten/responses ' . $irt_model . ' V1.php');
  $test_strategie = 'classTest'; // klassischer Test
 # $test_strategie = 'defCAT'; // Adaptive Test for Deficency
 # $test_strategie = 'strenCAT'; // Adaptive Test for Strength
-# $test_strategie = 'relScales'; // Adaptive Test for relevant Scales
+ $test_strategie = 'relScales'; // Adaptive Test for relevant Scales
 # $test_strategie = 'allScales'; // Adaptive Test for all Scales
 
 $pp_start = 0; #0.02;
@@ -32,7 +32,7 @@ $se_max = 0.5;
 $N_total = 35;
  $N_total = 250;
 $N_max = 10;
-$N_min = 3;
+$N_min = 5;
 
 if ($test_strategie === 'radCAT') {
     $N_max = $N_total;
@@ -277,12 +277,6 @@ foreach ($responses as $person_id => $response_pattern) {
 
                 // Prüfe nun, welches von beiden Ergebnissen ferner vom pp_parent entfernt (in der selben Richtung!) liegt:
                 if (($pp_alternate <=> $pp_calc[$scale_temp]) == ($pp_calc[$scale_temp] <=> $pp_parent)) {
-
-                    print_r ($item_alternate[array_key_last($item_alternate)]);
-                    echo "Skala $scale_temp with N ".$N_calc[$scale_temp]." & frac ".$f_calc[$scale_temp];
-                    echo " pp_alternate $pp_alternate replaces pp ".$pp_calc[$scale_temp]." @ pp_parent $pp_parent with se_parent $se_parent";
-                    echo "<br>";
-
                     $pp_calc[$scale_temp] = $pp_alternate;
                 }
             }
@@ -295,9 +289,11 @@ foreach ($responses as $person_id => $response_pattern) {
 
             $out_step_data_tmp = str_replace("{".$scale_temp."}", '"'.round($pp_calc[$scale_temp], 2)." (SE ".round($se_calc[$scale_temp], 2)." bei ".$N_calc[$scale_temp]." Fragen mit R/W-Rate ".round($f_calc[$scale_temp], 2).")".'"', $out_step_data_tmp);
 
+            // Durch den Einbezug der alternativen Berechnung liefern nun auch nur "geschätzte" Skalen verlässliche(re) Werte und sollten zur Schätzung herangezogen werden.
+            $pp_parent = $pp_calc[$scale_temp];
+            $se_parent = $se_calc[$scale_temp];
+
             if (round($f_calc[$scale_temp], 0) != $f_calc[$scale_temp] ) {
-                $pp_parent = $pp_calc[$scale_temp];
-                $se_parent = $se_calc[$scale_temp];
 
                 # Alle unterliegenden Skalen mit round($f_calc, 0) == $f_calc nachberechnen (evtl. kommt es dadurch zu Doppelberechnungen!)
                 foreach ($sp as $scale_id => $scale_val) {
