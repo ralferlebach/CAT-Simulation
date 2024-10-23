@@ -14,7 +14,7 @@ require_once ('Daten/responses ' . $irt_model . ' V1.php');
 #die;
 
  $test_strategie = 'radCAT'; // radikaler CAT
- $test_strategie = 'classTest'; // klassischer Test
+# $test_strategie = 'classTest'; // klassischer Test
 # $test_strategie = 'defCAT'; // Adaptive Test for Deficency
 # $test_strategie = 'strenCAT'; // Adaptive Test for Strength
 # $test_strategie = 'relScales'; // Adaptive Test for relevant Scales
