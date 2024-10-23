@@ -13,11 +13,11 @@ require_once ('Daten/responses ' . $irt_model . ' V1.php');
 #print_r ($responses);
 #die;
 
-# $test_strategie = 'radCAT'; // radikaler CAT
+ $test_strategie = 'radCAT'; // radikaler CAT
  $test_strategie = 'classTest'; // klassischer Test
 # $test_strategie = 'defCAT'; // Adaptive Test for Deficency
 # $test_strategie = 'strenCAT'; // Adaptive Test for Strength
- $test_strategie = 'relScales'; // Adaptive Test for relevant Scales
+# $test_strategie = 'relScales'; // Adaptive Test for relevant Scales
 # $test_strategie = 'allScales'; // Adaptive Test for all Scales
 
 $pp_start = 0; #0.02;
@@ -29,7 +29,7 @@ $se_min = 0.25;
 # $se_min = 0.35;
 $se_max = 0.5;
 # $se_max = 1.5;
-$N_total = 35;
+$N_total = 60;
  $N_total = 250;
 $N_max = 10;
 $N_min = 5;
@@ -169,7 +169,22 @@ foreach ($responses as $person_id => $response_pattern) {
                 $sp_calc[$scale_temp] = FALSE;
                 }
             } else {
-                if (!$sp_calc[$scale_temp]) {
+                // Checke bei "allScales", ob noch Skalen mit weniger als der Mindestanzahl unterwegs sind.
+                if ($test_strategie === 'allScales') {
+                    $react = TRUE;
+                    foreach ($sp_calc as $test_scale => $test_val) {
+                        if ($N_calc[$test_scale] < $N_min) {
+                            $out_step_data .= "\n".$person_id.";deact;".$scale_temp.";N_calc:;".($test_scale)."; <".($N_min);
+                            $sp_calc[$scale_temp] = FALSE;
+                            $react = FALSE;
+                            break;
+                        }
+                    }
+                    if ($react) {
+                        $out_step_data .= "\n".$person_id.";enact;".$scale_temp.";N_calc:;\"all scales\"; >=".($N_min);
+                        $sp_calc[$scale_temp] = $scale_temp;
+                    }
+                } else if (!$sp_calc[$scale_temp]) {
                         $out_step_data .= "\n".$person_id.";enact;".$scale_temp.";TP+TI:;".($tp_temp + $ti_temp)."; >=".(1/$se_max ** 2);
                 }
                 $sp_calc[$scale_temp] = $scale_temp;
