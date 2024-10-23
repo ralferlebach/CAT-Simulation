@@ -18,7 +18,7 @@ require_once ('Daten/responses ' . $irt_model . ' V1.php');
 # $test_strategie = 'defCAT'; // Adaptive Test for Deficency
 # $test_strategie = 'strenCAT'; // Adaptive Test for Strength
 # $test_strategie = 'relScales'; // Adaptive Test for relevant Scales
- $test_strategie = 'allScales'; // Adaptive Test for all Scales
+# $test_strategie = 'allScales'; // Adaptive Test for all Scales
 
 $pp_start = 0; #0.02;
 $pp_start = 0.02;
