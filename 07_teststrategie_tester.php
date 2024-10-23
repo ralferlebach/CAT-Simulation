@@ -18,7 +18,7 @@ require_once ('Daten/responses ' . $irt_model . ' V1.php');
 # $test_strategie = 'defCAT'; // Adaptive Test for Deficency
 # $test_strategie = 'strenCAT'; // Adaptive Test for Strength
 # $test_strategie = 'relScales'; // Adaptive Test for relevant Scales
-# $test_strategie = 'allScales'; // Adaptive Test for all Scales
+ $test_strategie = 'allScales'; // Adaptive Test for all Scales
 
 $pp_start = 0; #0.02;
 $pp_start = 0.02;
@@ -29,8 +29,10 @@ $se_min = 0.25;
 # $se_min = 0.35;
 $se_max = 0.5;
 # $se_max = 1.5;
+
 $N_total = 60;
  $N_total = 250;
+
 $N_max = 10;
 $N_min = 5;
 
@@ -186,8 +188,8 @@ foreach ($responses as $person_id => $response_pattern) {
                     }
                 } else if (!$sp_calc[$scale_temp]) {
                         $out_step_data .= "\n".$person_id.";enact;".$scale_temp.";TP+TI:;".($tp_temp + $ti_temp)."; >=".(1/$se_max ** 2);
+                        $sp_calc[$scale_temp] = $scale_temp;
                 }
-                $sp_calc[$scale_temp] = $scale_temp;
             }
         }
 
@@ -315,13 +317,13 @@ foreach ($responses as $person_id => $response_pattern) {
                     # if ($scale_id != $scale_val) {continue;} // Skippe alle ungenutzten oder ausgeschlossenen Skalen
                     if (substr($scale_id, 0, strlen($scale_temp)) != $scale_temp) {continue;} // Skippe Skalen, die nicht unter $scale_temp liegen
                     if (substr($scale, 0, strlen($scale_id)) == $scale_id) {continue;} // Skippe Skalen, die innerhalb des Zweiges des aktuellen items liegen - diese werden ohnehin gleich berechnet.
-                    if (round($f_calc[$scale_id], 0) != $f_calc[$scale_id] ){continue; } // Skippe alle untergeordneten Skalen mit echter Berechnung
+                    if (round($f_calc[$scale_id], 0) != $f_calc[$scale_id]) {continue;} // Skippe alle untergeordneten Skalen mit echter Berechnung
                     $item_temp = array_filter($item_played, function($v, $k) { global $scale_id; return (substr($v['Scale'], 0, strlen($scale_id)) == $scale_id); }, ARRAY_FILTER_USE_BOTH);
                     $pp_calc[$scale_id] = pp_2pl_est($item_temp, $pp_calc[$scale_id], $pp_parent, $se_parent);
                     $se_calc[$scale_id] = se_2pl($item_temp, $pp_calc[$scale_id]);
-                # reestimate ($item_temp, $scale_temp, $pp_calc, $se_calc);
-                $out_step_data_tmp = str_replace("{".$scale_temp."}", '"'.round($pp_calc[$scale_temp], 2)." (SE ".round($se_calc[$scale_temp], 2)." bei ".$N_calc[$scale_temp]." Fragen mit R/W-Rate ".round($f_calc[$scale_temp], 2).")".'"', $out_step_data_tmp);
-                # echo "Nachberechnen: $scale_id: ".$pp_calc[$scale_id]." bei ".$N_calc[$scale_id]." Fragen mit ".$f_calc[$scale_id]." R/W-Rate<br>\n";
+                    # reestimate ($item_temp, $scale_temp, $pp_calc, $se_calc);
+                    $out_step_data_tmp = str_replace("{".$scale_temp."}", '"'.round($pp_calc[$scale_temp], 2)." (SE ".round($se_calc[$scale_temp], 2)." bei ".$N_calc[$scale_temp]." Fragen mit R/W-Rate ".round($f_calc[$scale_temp], 2).")".'"', $out_step_data_tmp);
+                    # echo "Nachberechnen: $scale_id: ".$pp_calc[$scale_id]." bei ".$N_calc[$scale_id]." Fragen mit ".$f_calc[$scale_id]." R/W-Rate<br>\n";
                 }
             }
         }
