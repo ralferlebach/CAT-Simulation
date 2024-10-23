@@ -13,12 +13,12 @@ require_once ('Daten/responses ' . $irt_model . ' V1.php');
 #print_r ($responses);
 #die;
 
-# $test_strategie = 'radCAT'; // radikaler CAT
- $test_strategie = 'classTest'; // klassischer Test
+ $test_strategie = 'radCAT'; // radikaler CAT
+# $test_strategie = 'classTest'; // klassischer Test
 # $test_strategie = 'defCAT'; // Adaptive Test for Deficency
 # $test_strategie = 'strenCAT'; // Adaptive Test for Strength
 # $test_strategie = 'relScales'; // Adaptive Test for relevant Scales
- $test_strategie = 'allScales'; // Adaptive Test for all Scales
+# $test_strategie = 'allScales'; // Adaptive Test for all Scales
 
 $pp_start = 0; #0.02;
 $pp_start = 0.02;
@@ -29,10 +29,12 @@ $se_min = 0.25;
 # $se_min = 0.35;
 $se_max = 0.5;
 # $se_max = 1.5;
-$N_total = 35;
-$N_total = 250;
+
+$N_total = 60;
+ $N_total = 250;
+
 $N_max = 10;
-$N_min = 3;
+$N_min = 5;
 
 if ($test_strategie === 'radCAT') {
     $N_max = $N_total;
@@ -275,10 +277,27 @@ foreach ($responses as $person_id => $response_pattern) {
         $item_temp = [];
         $item_temp = array_filter($item_played, function($v, $k) use ($scale_temp) {return (substr($v['Scale'], 0, strlen($scale_temp)) === $scale_temp); }, ARRAY_FILTER_USE_BOTH);
 
+        // Lege auch glweich ein alternatives Modell des Testverlaufes an, indem id letzte Frage "geflippt" beantwortet wurde.
+        $item_alternate = $item_temp;
+        $item_alternate[array_key_last($item_alternate)]['k'] = abs( 1 - $item_alternate[array_key_last($item_alternate)]['k']);
+
+
         $N_calc[$scale_temp] = count($item_temp);
         if (($N_calc[$scale_temp] > 0) || ($scale_temp == $scale_root)) {
             $pp_prev[$scale_temp] = $pp_calc[$scale_temp];
             $pp_calc[$scale_temp] = pp_2pl_est($item_temp, ($pp_calc[$scale_temp] !== FALSE)?($pp_calc[$scale_temp]):($pp_parent), $pp_parent, $se_parent);
+
+            // Alternative Berechung im Falle, dass pp nur mittels EAP geschätzt werden konnte und 3 oder mehr Fragen auszuwerten sind:
+            if ((round($f_calc[$scale_temp], 0) == round($f_calc[$scale_temp], 6)) && ($N_calc[$scale_temp] > 2)) {
+
+                $pp_alternate = pp_2pl_est($item_alternate, ($pp_calc[$scale_temp] !== FALSE)?($pp_calc[$scale_temp]):($pp_parent), $pp_parent, $se_parent);
+
+                // Prüfe nun, welches von beiden Ergebnissen ferner vom pp_parent entfernt (in der selben Richtung!) liegt:
+                if (($pp_alternate <=> $pp_calc[$scale_temp]) == ($pp_calc[$scale_temp] <=> $pp_parent)) {
+                    $pp_calc[$scale_temp] = $pp_alternate;
+                }
+            }
+
             $se_calc[$scale_temp] = se_2pl($item_temp, $pp_calc[$scale_temp]);
 
             $frac_temp = array_map(function ($v) { return $v['k']; } , $item_temp);
@@ -287,9 +306,11 @@ foreach ($responses as $person_id => $response_pattern) {
 
             $out_step_data_tmp = str_replace("{".$scale_temp."}", '"'.round($pp_calc[$scale_temp], 2)." (SE ".round($se_calc[$scale_temp], 2)." bei ".$N_calc[$scale_temp]." Fragen mit R/W-Rate ".round($f_calc[$scale_temp], 2).")".'"', $out_step_data_tmp);
 
-            if (round($f_calc[$scale_temp], 0) != round($f_calc[$scale_temp], 6) ) {
-                $pp_parent = $pp_calc[$scale_temp];
-                $se_parent = $se_calc[$scale_temp];
+            // Durch den Einbezug der alternativen Berechnung liefern nun auch nur "geschätzte" Skalen verlässliche(re) Werte und sollten zur Schätzung herangezogen werden.
+            $pp_parent = $pp_calc[$scale_temp];
+            $se_parent = $se_calc[$scale_temp];
+
+            if (round($f_calc[$scale_temp], 0) != $f_calc[$scale_temp] ) {
 
                 # Alle unterliegenden Skalen mit round($f_calc, 0) == $f_calc nachberechnen (evtl. kommt es dadurch zu Doppelberechnungen!)
                 foreach ($sp as $scale_id => $scale_val) {
