@@ -306,7 +306,7 @@ foreach ($responses as $person_id => $response_pattern) {
 
             $out_step_data_tmp = str_replace("{".$scale_temp."}", '"'.round($pp_calc[$scale_temp], 2)." (SE ".round($se_calc[$scale_temp], 2)." bei ".$N_calc[$scale_temp]." Fragen mit R/W-Rate ".round($f_calc[$scale_temp], 2).")".'"', $out_step_data_tmp);
 
-            if (round($f_calc[$scale_temp], 0) != $f_calc[$scale_temp] ) {
+            if (round($f_calc[$scale_temp], 0) != round($f_calc[$scale_temp], 6)) {
 
                 $pp_parent = $pp_calc[$scale_temp];
                 $se_parent = $se_calc[$scale_temp];
