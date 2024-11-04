@@ -287,6 +287,10 @@ foreach ($responses as $person_id => $response_pattern) {
             $pp_prev[$scale_temp] = $pp_calc[$scale_temp];
             $pp_calc[$scale_temp] = pp_2pl_est($item_temp, ($pp_calc[$scale_temp] !== FALSE)?($pp_calc[$scale_temp]):($pp_parent), $pp_parent, $se_parent);
 
+            $frac_temp = array_map(function ($v) { return $v['k']; } , $item_temp);
+            $frac_sum = array_sum($frac_temp);
+            $f_calc[$scale_temp] = $frac_sum / $N_calc[$scale_temp];
+            
             // Alternative Berechung im Falle, dass pp nur mittels EAP geschätzt werden konnte und 3 oder mehr Fragen auszuwerten sind:
             if ((round($f_calc[$scale_temp], 0) == round($f_calc[$scale_temp], 6)) && ($N_calc[$scale_temp] > 2)) {
 
@@ -299,10 +303,6 @@ foreach ($responses as $person_id => $response_pattern) {
             }
 
             $se_calc[$scale_temp] = se_2pl($item_temp, $pp_calc[$scale_temp]);
-
-            $frac_temp = array_map(function ($v) { return $v['k']; } , $item_temp);
-            $frac_sum = array_sum($frac_temp);
-            $f_calc[$scale_temp] = $frac_sum / $N_calc[$scale_temp];
 
             $out_step_data_tmp = str_replace("{".$scale_temp."}", '"'.round($pp_calc[$scale_temp], 2)." (SE ".round($se_calc[$scale_temp], 2)." bei ".$N_calc[$scale_temp]." Fragen mit R/W-Rate ".round($f_calc[$scale_temp], 2).")".'"', $out_step_data_tmp);
 
